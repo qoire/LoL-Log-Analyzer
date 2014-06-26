@@ -8,29 +8,60 @@
 require 'yaml' # Script uses yaml for saving (for human readability)
 
 $LOG_LIST = []
+$CHAMP_HASH = {}
+$SUMMONER_NAME = []
+
 
 def read_file(file_name)
-	File.open(file_name, "r") do |f|
-		i = 0
-		f.each_line do |line|
-			i += 1
-			puts "%d : %s" % [i, line]
-		end
-	end
+    File.open(file_name, "r") do |f|
+        i = 0
+        f.each_line do |line|
+            #i += 1
+            #puts "%d : %s" % [i, line]
+            $SUMMONER_NAME.each do |a|
+                if line =~ /created for #{a}/
+                    hero_name = /Hero\s(\w+)/.match(line)[1]
+                    puts hero_name
+                    if $CHAMP_HASH[:champs].key?(hero_name.to_sym)
+                        $CHAMP_HASH[:champs][hero_name.to_sym] += 1
+                    elsif
+                        $CHAMP_HASH[:champs][hero_name.to_sym] = 1
+                    end
+                end
+            end
+        end
+    end
 end
 
 
-# main
+# MAIN ************************************************
+ARGV.each do |a|
+    $SUMMONER_NAME << a
+end
+
+# set up hash
+$CHAMP_HASH.merge!(summoner: $SUMMONER_NAME.last)
+$CHAMP_HASH.merge!(champs: {})
+
+if not $SUMMONER_NAME
+    puts "Script Requires your summoner name (IGN)"
+    exit
+end
+
 Dir.entries("./Game - R3d Logs").each do |item|
-	if item =~ /.txt$/
-		$LOG_LIST << item
-	end
+    if item =~ /.txt$/
+        $LOG_LIST << item
+    end
 end
 
 # change directory
 Dir.chdir("./Game - R3d Logs") do
-	$LOG_LIST.each do |x|
-		puts x
-		read_file(x)
-	end
+    $LOG_LIST.each do |x|
+        read_file(x)
+    end
 end
+
+# sort the hash properly
+$CHAMP_HASH[:champs] = Hash[$CHAMP_HASH[:champs].sort_by { |k, v| v}.reverse]
+
+# open output to yaml file
