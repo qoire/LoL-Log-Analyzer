@@ -65,3 +65,6 @@ end
 $CHAMP_HASH[:champs] = Hash[$CHAMP_HASH[:champs].sort_by { |k, v| v}.reverse]
 
 # open output to yaml file
+File.open("champs.yml", "w") do |f|
+    f.write($CHAMP_HASH.to_yaml)
+end
